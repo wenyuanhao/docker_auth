@@ -1,0 +1,45 @@
+server:  # Server settings.
+# Address to listen on.
+    addr: ":5001"
+    # TLS certificate and key.
+    cert: "/home/wenyuanhao/auth_server/ssl/server.crt"
+    key: "/home/wenyuanhao/auth_server/ssl/server.key"
+
+token:  # Settings for the tokens.
+    issuer: "Auth Service"  # Must match issuer in the Registry config.
+    expiration: 900
+
+# Static user map. 
+users:
+    # Password is specified as a BCrypt hash. Use htpasswd -B to generate. Apache版本需要2.4以上
+    - {
+        username: "admin", 
+        password: "$2y$10$yN/nF9piGc0yNitYna6E7.VvGBdoaUL5ohPt.v017SJrjvFY6QHL6"  # registry@admin^
+      }
+    - {
+        username: "pull_user", 
+        password: "$2y$10$24cJ8G4z/cgiMN.2q/7pWeMa2/FXf6x2CkmIrVRSdY7habx7twDo."  # 123456 
+      }
+
+acl:
+# Admin has full access to everything.
+    - {
+        account: "admin",
+        actions: ["*"]
+      }
+    - {
+        account: "pull_user",
+        actions: ["pull"]
+      }
+    # User "test" has full access to ubuntu image but nothing else.
+    #- match: {account: "hussien", name: "ubuntu"}
+    #actions: ["*"]
+    #- match: {account: "test"}
+    #actions: []
+    # All logged in users can pull all images.
+    #- match: {account: "/.+/"}
+    #actions: ["pull"]
+    # Anonymous users can pull "hello-world".
+    #- match: {account: "", name: "hello-world"}
+    #actions: ["pull"]
+    # Access is denied by default.

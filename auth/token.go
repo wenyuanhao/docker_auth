@@ -1,13 +1,11 @@
 package auth
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/docker/distribution/registry/auth/token"
-	"github.com/docker/libtrust"
+	"github.com/wyhisphper/docker_auth/config"
 	"log"
 	"math/rand"
 	"net/http"
@@ -48,7 +46,10 @@ func getResourceActions(r *http.Request) []*token.ResourceActions {
 }
 
 func MakeTokenJSON(r *http.Request) []byte {
-	pubK, priK, _ := loadCertAndKey("/path/to/crt", "/peth/to/key")
+	pubK, priK, err := config.LoadCertAndKey()
+	if err != nil {
+		log.Fatal("load cert and key error:", err)
+	}
 	_, alg, err := priK.Sign(strings.NewReader("ttt"), 0)
 	if err != nil {
 		log.Fatal("failed to sign: %s", err)
@@ -61,13 +62,14 @@ func MakeTokenJSON(r *http.Request) []byte {
 	}
 	headerJSON, err := json.Marshal(header)
 	now := time.Now().Unix()
+	issuer, expir := config.GetIssuerAndExpire()
 	c := token.ClaimSet{
-		Issuer:     "Auth Service",
-		Subject:    "admin",
-		Audience:   "Docker registry",
+		Issuer:     issuer,
+		Subject:    r.Form["account"][0],
+		Audience:   r.Form["service"][0],
 		NotBefore:  now - 10,
 		IssuedAt:   now,
-		Expiration: now + 60,
+		Expiration: now + expir,
 		JWTID:      fmt.Sprintf("%d", rand.Int63()),
 		Access:     getResourceActions(r),
 	}
@@ -81,23 +83,6 @@ func MakeTokenJSON(r *http.Request) []byte {
 	tokenString := fmt.Sprintf("%s.%s", payload, signature)
 	tokenJSON, _ := json.Marshal(map[string]string{"token": tokenString})
 	return tokenJSON
-}
-
-func loadCertAndKey(certFile, keyFile string) (pk libtrust.PublicKey, prk libtrust.PrivateKey, err error) {
-	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-	if err != nil {
-		return
-	}
-	x509Cert, err := x509.ParseCertificate(cert.Certificate[0])
-	if err != nil {
-		return
-	}
-	pk, err = libtrust.FromCryptoPublicKey(x509Cert.PublicKey)
-	if err != nil {
-		return
-	}
-	prk, err = libtrust.FromCryptoPrivateKey(cert.PrivateKey)
-	return
 }
 
 func joseBase64UrlEncode(b []byte) string {
