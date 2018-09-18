@@ -3,6 +3,7 @@ package config
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"flag"
 	"github.com/docker/libtrust"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -48,7 +49,12 @@ var (
 )
 
 func LoadConfig() error {
-	data, err := ioutil.ReadFile("./auth_config.yml")
+	flag.Parse()
+	cf := flag.Arg(0)
+	if cf == "" {
+		log.Fatal("need config file")
+	}
+	data, err := ioutil.ReadFile(cf)
 	if err != nil {
 		return err
 	}
