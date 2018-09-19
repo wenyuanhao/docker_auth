@@ -7,9 +7,11 @@ import (
 
 func main() {
 	log.Print("Starting Auth Server")
-	as := server.NewServer()
-	err := as.ListenAndServe()
-	if err != nil {
+	as := server.GetServer()
+	as.StartServer()
+	/*if err != nil {
 		log.Fatal("ListenAndServe Fail: ", err)
+	}*/
+	for {
 	}
 }

@@ -1,6 +1,6 @@
 server:  # Server settings.
 # Address to listen on.
-    addr: ":5001"
+    addr: ":6767"
     # TLS certificate and key.
     cert: "/home/wenyuanhao/auth_server/ssl/server.crt"
     key: "/home/wenyuanhao/auth_server/ssl/server.key"

@@ -3,13 +3,18 @@ package server
 import (
 	"github.com/wyhisphper/docker_auth/auth"
 	"net/http"
+	"sync"
 )
 
-type serverMux struct{}
+type serverMux struct {
+	wg sync.WaitGroup
+}
 
 var mux *serverMux
 
 func (mux *serverMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	mux.wg.Add(1)
+	defer mux.wg.Done()
 	if r.URL.Path == "/auth" {
 		handleAuth(w, r)
 	} else {

@@ -1,23 +1,69 @@
 package server
 
 import (
-	"errors"
+	//"errors"
+	"github.com/wyhisphper/docker_auth/config"
+	"log"
 	"net/http"
+	//"time"
 )
 
 type authServer struct {
-	ipAddr string
-	port   string
+	listenAddr string
+	server     *http.Server
+	closeChan  chan bool
 }
 
-func NewServer() *authServer {
-	return &authServer{"", "6767"}
-}
+var as *authServer
 
-func (as *authServer) ListenAndServe() error {
-	if len(as.port) == 0 {
-		return errors.New("port can't be empty")
+func init() {
+	as = &authServer{
+		closeChan: make(chan bool),
 	}
-	err := http.ListenAndServe(as.ipAddr+":"+as.port, mux)
-	return err
+}
+
+func GetServer() *authServer {
+	return as
+}
+
+func RestartServer() {
+	err := config.LoadConfig()
+	if err != nil {
+		log.Println("can not load config: ", err)
+		return
+	}
+	log.Println("restarting server...")
+	as.server.Shutdown(nil)
+	<-as.closeChan
+	//err = as.server.Close()
+	//err = as.StartServer()
+	as.setListenAddr()
+	as.listenAndServe()
+}
+
+func (as *authServer) StartServer() {
+	go config.WatchConfig(RestartServer)
+	as.setListenAddr()
+	as.listenAndServe()
+}
+
+func (as *authServer) setListenAddr() {
+	as.listenAddr = config.GetListenAddr()
+}
+
+func (as *authServer) listenAndServe() {
+	if len(as.listenAddr) == 0 {
+		log.Println("port can't be empty")
+		return
+	}
+	as.server = &http.Server{
+		Addr:    as.listenAddr,
+		Handler: mux,
+	}
+	go func() {
+		err := as.server.ListenAndServe()
+		log.Println(err)
+		as.closeChan <- true
+	}()
+	return
 }

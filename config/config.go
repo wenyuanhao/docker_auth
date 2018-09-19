@@ -45,15 +45,11 @@ type userInfo struct {
 
 var (
 	c       = &Config{}
+	cf      string
 	userMap map[string]*userInfo
 )
 
 func LoadConfig() error {
-	flag.Parse()
-	cf := flag.Arg(0)
-	if cf == "" {
-		log.Fatal("need config file")
-	}
 	data, err := ioutil.ReadFile(cf)
 	if err != nil {
 		return err
@@ -84,6 +80,11 @@ func makeUserMap() {
 }
 
 func init() {
+	flag.Parse()
+	cf = flag.Arg(0)
+	if cf == "" {
+		log.Fatal("need config file")
+	}
 	err := LoadConfig()
 	if err != nil {
 		log.Fatal("Can not load config", err)
