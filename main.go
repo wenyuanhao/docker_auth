@@ -12,6 +12,4 @@ func main() {
 	/*if err != nil {
 		log.Fatal("ListenAndServe Fail: ", err)
 	}*/
-	for {
-	}
 }

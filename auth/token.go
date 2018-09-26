@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/docker/distribution/registry/auth/token"
 	"github.com/wyhisphper/docker_auth/config"
+	"github.com/wyhisphper/docker_auth/lib"
 	"log"
 	"math/rand"
 	"net/http"
@@ -14,6 +15,11 @@ import (
 )
 
 func getResourceActions(r *http.Request) []*token.ResourceActions {
+	account, _, _ := r.BasicAuth()
+    acc_actions := config.GetUserAction(account)
+    if acc_actions == nil {
+        return nil
+    }
 	r.ParseForm()
 	var resActions []*token.ResourceActions
 	if r.FormValue("scope") != "" {
@@ -37,7 +43,7 @@ func getResourceActions(r *http.Request) []*token.ResourceActions {
 			resAction := &token.ResourceActions{
 				Type:    ty,
 				Name:    name,
-				Actions: actions,
+				Actions: lib.StringSetIntersection(actions, acc_actions),
 			}
 			resActions = append(resActions, resAction)
 		}

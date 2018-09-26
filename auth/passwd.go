@@ -1,8 +1,9 @@
 package auth
 
 import (
-	"errors"
 	"net/http"
+    "github.com/wyhisphper/docker_auth/config"
+    "golang.org/x/crypto/bcrypt"
 )
 
 type account struct {
@@ -11,10 +12,11 @@ type account struct {
 }
 
 func (a *account) Check() error {
-	if a.username != "admin" || a.password != "123456" {
-		return errors.New("Auth failed")
-	}
-	return nil
+    user_password := config.GetUserPassword(a.username);
+    if err := bcrypt.CompareHashAndPassword([]byte(user_password), []byte(a.password)); err != nil {
+	    return err 
+    }
+    return nil
 }
 
 func NewAccount(r *http.Request) *account {

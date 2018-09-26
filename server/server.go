@@ -1,11 +1,9 @@
 package server
 
 import (
-	//"errors"
 	"github.com/wyhisphper/docker_auth/config"
 	"log"
 	"net/http"
-	//"time"
 )
 
 type authServer struct {
@@ -42,9 +40,9 @@ func RestartServer() {
 }
 
 func (as *authServer) StartServer() {
-	go config.WatchConfig(RestartServer)
 	as.setListenAddr()
 	as.listenAndServe()
+	config.WatchConfig(RestartServer)
 }
 
 func (as *authServer) setListenAddr() {

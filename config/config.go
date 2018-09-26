@@ -58,6 +58,7 @@ func LoadConfig() error {
 	if err != nil {
 		return err
 	}
+	makeUserMap()
 	return nil
 }
 
@@ -89,7 +90,6 @@ func init() {
 	if err != nil {
 		log.Fatal("Can not load config", err)
 	}
-	makeUserMap()
 }
 
 func LoadCertAndKey() (pk libtrust.PublicKey, prk libtrust.PrivateKey, err error) {
@@ -116,3 +116,18 @@ func GetListenAddr() string {
 func GetIssuerAndExpire() (string, int64) {
 	return c.Token.Issuer, int64(c.Token.Expiration)
 }
+
+func GetUserPassword(username string) string{
+    if info, ok := userMap[username]; ok {
+        return info.password
+    }
+    return "" 
+}
+
+func GetUserAction(username string) []string{
+    if info, ok := userMap[username]; ok {
+        return info.actions
+    }
+    return nil
+}
+
